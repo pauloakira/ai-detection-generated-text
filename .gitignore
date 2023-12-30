@@ -1,5 +1,6 @@
 # caching
 .vscode
+.DS_Store
 
 # datasets
 _data/*
