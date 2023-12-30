@@ -1,6 +1,7 @@
 # caching
 .vscode
 .DS_Store
+__pycache__
 
 # datasets
 _data/*
