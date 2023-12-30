@@ -1,0 +1,7 @@
+tensorflow-macos
+tensorflow-metal
+scikit-learn
+matplotlib
+imbalanced-learn
+seaborn
+nltk
