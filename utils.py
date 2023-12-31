@@ -2,7 +2,7 @@ import re
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
+from nltk.stem import WordNetLemmatizer, PorterStemmer
 
 def donwload_nltk_resources(resource_name: str):
     try:
@@ -19,7 +19,7 @@ def checkForNLTKResources():
     for resource in resources:
         donwload_nltk_resources(resource)
 
-def cleanText(text: str)-> str:
+def cleanText(text: str, withStemming = False)-> str:
     # Put text to lowercase
     text = text.lower()
     # Remove punctuation
@@ -31,9 +31,15 @@ def cleanText(text: str)-> str:
     # Remove stopwords
     stop_words = set(stopwords.words('english'))
     words = [word for word in words if word not in stop_words]
-    # Lemmatization
-    lemmatizer = WordNetLemmatizer()
-    words = [lemmatizer.lemmatize(word) for word in words]
+    # Stemming/Lemmatization
+    if withStemming:
+        # Stemming
+        stemmer = PorterStemmer()
+        words = [stemmer.stem(word) for word in words]
+    else:
+        # Lemmatization
+        lemmatizer = WordNetLemmatizer()
+        words = [lemmatizer.lemmatize(word) for word in words]
     # Join words
     text = ' '.join(words)
     return text
