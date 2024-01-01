@@ -8,6 +8,9 @@ from nltk.stem import WordNetLemmatizer, PorterStemmer
 
 from textblob import TextBlob
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from scipy.sparse import hstack, csr_matrix
+
 def donwload_nltk_resources(resource_name: str):
     try:
         # Check of the resource has already been downloaded
@@ -23,7 +26,7 @@ def checkForNLTKResources():
     for resource in resources:
         donwload_nltk_resources(resource)
 
-def cleanText(text: str, withStemming = False)-> str:
+def cleanText(text: str, withStemming: bool = False)-> str:
     # Put text to lowercase
     text = text.lower()
     # Remove punctuation
@@ -49,7 +52,7 @@ def cleanText(text: str, withStemming = False)-> str:
     return text
 
 def computeNumericalFeatures(df: pd.DataFrame):
-    ''' Receives a dataframe with a column named 'text' (already cleaned) 
+    ''' Receives a dataframe with a column named 'cleaned_text' (already cleaned) 
     and computes the following features: number of words, number of characters,
     average word length, number of sentences and sentiment score.
 
@@ -60,14 +63,39 @@ def computeNumericalFeatures(df: pd.DataFrame):
         - df: dataframe with the new features.
     '''
     # Number of words
-    df['num_words'] = df['text'].apply(lambda x: len(str(x).split()))
+    df['num_words'] = df['cleaned_text'].apply(lambda x: len(str(x).split()))
     # Character count
-    df['num_chars'] = df['text'].apply(lambda x: len(str(x)))
+    df['num_chars'] = df['cleaned_text'].apply(lambda x: len(str(x)))
     # Average word length
     df['avg_word_length'] = df['num_chars'] / df['num_words']
     # Sentence count
-    df['num_sentences'] = df['text'].apply(lambda x: len(TextBlob(x).sentences))
+    df['num_sentences'] = df['cleaned_text'].apply(lambda x: len(TextBlob(x).sentences))
     # Sentiment score
-    df['sentiment_score'] = df['text'].apply(lambda x: TextBlob(x).sentiment.polarity)
+    df['sentiment_score'] = df['cleaned_text'].apply(lambda x: TextBlob(x).sentiment.polarity)
 
     return df
+
+def tfidfVectorizer(df: pd.DataFrame, hasAdditionalFeatures: bool = False):
+    ''' Receives a dataframe with a column named 'cleaned_text' (already cleaned)
+    and computes the tfidf matrix. If hasAdditionalFeatures is True, it also adds
+    the following features: number of words, number of characters, average word length,
+    number of sentences and sentiment score.
+    
+    Input:
+        - df: dataframe with a column named 'text' (already cleaned).
+        - hasAdditionalFeatures: boolean indicating if additional features should be added.
+
+    Output:
+        - tfidf_matrix: tfidf sparse matrix.
+    '''
+    # Create tfidf vectorizer
+    tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=1)
+    # Fit the vectorizer
+    tfidf_matrix = tfidf_vectorizer.fit_transform(df['cleaned_text'])
+    # Add additional features
+    if hasAdditionalFeatures:
+        # Convert the numerical features to a sparse matrix
+        additional_features = csr_matrix(df[['num_words', 'num_chars', 'avg_word_length', 'num_sentences', 'sentiment_score']].values)
+        # Horizontally stack the sparse matrix with the tfidf matrix
+        tfidf_matrix = hstack([tfidf_matrix, additional_features])
+    return tfidf_matrix
