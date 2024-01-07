@@ -51,7 +51,7 @@ def cleanText(text: str, withStemming: bool = False)-> str:
     text = ' '.join(words)
     return text
 
-def computeNumericalFeatures(df: pd.DataFrame):
+def computeNumericalFeatures(df: pd.DataFrame)-> pd.DataFrame:
     ''' Receives a dataframe with a column named 'cleaned_text' (already cleaned) 
     and computes the following features: number of words, number of characters,
     average word length, number of sentences and sentiment score.
@@ -75,7 +75,7 @@ def computeNumericalFeatures(df: pd.DataFrame):
 
     return df
 
-def tfidfVectorizer(df: pd.DataFrame, hasAdditionalFeatures: bool = False):
+def tfidfVectorizer(df: pd.DataFrame, hasAdditionalFeatures: bool = False)-> csr_matrix:
     ''' Receives a dataframe with a column named 'cleaned_text' (already cleaned)
     and computes the tfidf matrix. If hasAdditionalFeatures is True, it also adds
     the following features: number of words, number of characters, average word length,
