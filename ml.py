@@ -1,10 +1,12 @@
 import pandas as pd
+import numpy as np
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack, csr_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, accuracy_score
+from sklearn.model_selection import cross_val_score
 
 class NaiveBayes():
     def __init__(self, tfidf_matrix: csr_matrix, df, hasAdditionalFeatures: bool = False):
@@ -16,6 +18,8 @@ class NaiveBayes():
         self.X_test = None
         self.y_train = None
         self.y_test = None
+
+        self.y_pred = None
 
         self.accuracy = None
         self.classification_report = None
@@ -37,13 +41,14 @@ class NaiveBayes():
         model = MultinomialNB()
         model.fit(self.X_train, self.y_train)
 
-        y_pred = model.predict(self.X_test)
-        self.accuracy = accuracy_score(self.y_test, y_pred)
-        self.classification_report = classification_report(self.y_test, y_pred)
+        self.y_pred = model.predict(self.X_test)
+
+        self.accuracy = accuracy_score(self.y_test, self.y_pred)
+        self.classification_report = classification_report(self.y_test, self.y_pred)
 
         return model
 
-    def getScoreMetrics(self):
+    def getScoreMetrics(self)->(float, str):
         ''' Returns the accuracy and the classification report.
 
         Input:
@@ -55,5 +60,33 @@ class NaiveBayes():
         '''
         print(f"Accuracy: {self.accuracy}")
         print(f"Classification report:\n{self.classification_report}")
-        return self.accuracy, self.classification_report     
+        return self.accuracy, self.classification_report
+    
+    def getTestPrediction(self)->np.ndarray:
+        '''Returns the predictions on the test set.
+
+        Input:
+            None
+        
+        Output:
+            - y_pred: predictions on the test set.
+        
+        '''
+        return self.y_pred
+
+    def crossValidation(self, model: MultinomialNB, k: int = 5)->np.ndarray:
+        ''' Performs k-fold cross validation on the model.
+
+        Input:
+            - model: trained model.
+            - k: number of folds.
+
+        Output:
+            - scores: list of scores.
+        '''
+        scores = cross_val_score(model, self.tfidf_matrix, self.df['generated'], cv=k, scoring='accuracy')
+        print(f"Cross validation scores: {scores}")
+        print(f"Mean score: {np.mean(scores)}")
+        print(f"Standard deviation: {np.std(scores)}")
+        return scores 
 
