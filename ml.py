@@ -74,7 +74,7 @@ class NaiveBayes():
         '''
         return self.y_pred
 
-    def crossValidation(self, model: MultinomialNB, k: int = 5)->np.ndarray:
+    def crossValidation(self, model: MultinomialNB, k: int = 5)->(np.ndarray, float, float):
         ''' Performs k-fold cross validation on the model.
 
         Input:
@@ -83,10 +83,26 @@ class NaiveBayes():
 
         Output:
             - scores: list of scores.
+            - mean: mean of the scores.
+            - std: standard deviation of the scores.
         '''
         scores = cross_val_score(model, self.tfidf_matrix, self.df['generated'], cv=k, scoring='accuracy')
+        mean = np.mean(scores)
+        std = np.std(scores)
         print(f"Cross validation scores: {scores}")
-        print(f"Mean score: {np.mean(scores)}")
-        print(f"Standard deviation: {np.std(scores)}")
-        return scores 
+        print(f"Mean score: {mean}")
+        print(f"Standard deviation: {std}")
+        return scores, mean, std
+    
+    def evaluteModelErrors(self)->pd.DataFrame:
+        ''' Evaluates the model errors.
 
+        Input:
+            None
+
+        Output:
+            - df_errors: dataframe with the errors.
+        '''
+        error_df = pd.DataFrame({'Actual': self.y_test, 'Predicted': self.y_pred})
+        error_df['Correct'] = error_df['Actual'] == error_df['Predicted']
+        return error_df
