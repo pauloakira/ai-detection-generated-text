@@ -95,7 +95,7 @@ class NaiveBayes():
         return scores, mean, std
     
     def evaluteModelErrors(self)->pd.DataFrame:
-        ''' Evaluates the model errors.
+        ''' Evaluates the model errors. 
 
         Input:
             None

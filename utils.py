@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+import numpy as np
 
 import nltk
 from nltk.corpus import stopwords
@@ -10,6 +11,7 @@ from textblob import TextBlob
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack, csr_matrix
+from scipy.stats import kstest, norm
 
 def donwload_nltk_resources(resource_name: str):
     try:
@@ -99,3 +101,23 @@ def tfidfVectorizer(df: pd.DataFrame, hasAdditionalFeatures: bool = False)-> csr
         # Horizontally stack the sparse matrix with the tfidf matrix
         tfidf_matrix = hstack([tfidf_matrix, additional_features])
     return tfidf_matrix
+
+def computeKSTest(df: pd.DataFrame, column: str, alpha: float = 0.05)-> (float, float):
+    ''' Computes the Kolmogorov-Smirnov test for a given column of a dataframe.
+    
+    Input:
+        - df: dataframe.
+        - column: column of the dataframe to compute the test.
+    
+    Output:
+        - D: KS statistic.
+        - p_value: p-value.
+    '''
+    # Compute the KS test
+    data = df[column]
+    DStat, p_value = kstest(data, 'norm', (np.mean(data), np.std(data)))
+    if p_value > alpha:
+        print('Sample looks Gaussian (fail to reject H0)')
+    else:
+        print('Sample does not look Gaussian (reject H0)')
+    return DStat, p_value
