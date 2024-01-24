@@ -137,6 +137,9 @@ def tokenizeText(df: pd.DataFrame):
         - tokenizer: tokenizer object.
         - X_padded: padded sequences.
     '''
+    # Check if the dataframe has the 'cleaned_text' column
+    if 'cleaned_text' not in df.columns:
+        raise ValueError("DataFrame does not have a 'cleaned_text' column")
 
     # Tokenize the sentence
     tokenizer = Tokenizer()
