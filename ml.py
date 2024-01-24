@@ -8,6 +8,11 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import cross_val_score
 
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+
+from gensim.models import Word2Vec
+
 class NaiveBayes():
     def __init__(self, tfidf_matrix: csr_matrix, df, hasAdditionalFeatures: bool = False):
         self.tfidf_matrix = tfidf_matrix
@@ -106,3 +111,22 @@ class NaiveBayes():
         error_df = pd.DataFrame({'Actual': self.y_test, 'Predicted': self.y_pred})
         error_df['Correct'] = error_df['Actual'] == error_df['Predicted']
         return error_df
+    
+
+class CNN():
+    def __init__(self, df: pd.DataFrame, word2vec_model: Word2Vec):
+        self.df = df
+        self.word2vec_model = word2vec_model
+
+        self.X_train = None
+        self.X_test = None
+        self.y_train = None
+        self.y_test = None
+
+        self.y_pred = None
+
+        self.accuracy = None
+        self.classification_report = None
+
+    def train(self):
+        pass

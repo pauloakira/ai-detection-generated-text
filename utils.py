@@ -13,6 +13,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack, csr_matrix
 from scipy.stats import kstest, norm
 
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+
 def donwload_nltk_resources(resource_name: str):
     try:
         # Check of the resource has already been downloaded
@@ -121,3 +124,26 @@ def computeKSTest(df: pd.DataFrame, column: str, alpha: float = 0.05)-> (float, 
     else:
         print('Sample does not look Gaussian (reject H0)')
     return DStat, p_value
+
+def tokenizeText(df: pd.DataFrame):
+    ''' Receives a dataframe with a column named 'cleaned_text' (already cleaned)
+    and tokenizes the text.
+
+    Input:
+        - df: dataframe with a column named 'text' (already cleaned).
+    
+    Output:
+        - tokenizer: tokenizer object.
+        - X_padded: padded sequences.
+    '''
+
+    # Tokenize the sentence
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(df['cleaned_text'])
+    sequences = tokenizer.texts_to_sequences(df['cleaned_text'])
+
+    # Padding the sequence to ensure uniform length
+    max_length = max([len(seq) for seq in sequences])
+    X_padded = pad_sequences(sequences, maxlen=max_length, padding='post')
+
+    return tokenizer, X_padded
