@@ -8,6 +8,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 
 from textblob import TextBlob
+from gensim.models import Word2Vec
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack, csr_matrix
@@ -147,3 +148,25 @@ def tokenizeText(df: pd.DataFrame):
     X_padded = pad_sequences(sequences, maxlen=max_length, padding='post')
 
     return tokenizer, X_padded
+
+def createEmbeddingMatrix(tokenizer: Tokenizer, word2vec_model: Word2Vec, embedding_dim: int = 100):
+    ''' Receives a tokenizer and a Word2Vec model and creates the embedding matrix.
+
+    Input:
+        - tokenizer: tokenizer object.
+        - word2vec_model: Word2Vec model.
+    
+    Output:
+        - embedding_matrix: embedding matrix.
+    '''
+
+    # Create the embedding matrix
+    vocab_size = len(tokenizer.word_index) + 1 # +1 because of the padding
+    embedding_matrix = np.zeros((vocab_size, embedding_dim))
+
+    for word, i in tokenizer.word_index.items():
+        if word in word2vec_model.wv:
+            embedding_vector = word2vec_model.wv[word]
+            embedding_matrix[i] = embedding_vector
+
+    return embedding_matrix
