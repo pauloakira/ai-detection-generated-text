@@ -8,10 +8,10 @@ from scipy.sparse import hstack, csr_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, accuracy_score
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, KFold
 
 from keras.models import Sequential
-from keras.layers import Embedding, Conv1D, MaxPooling1D, GlobalMaxPooling1D, Dense, Flatten, Dropout
+from keras.layers import Embedding, Conv1D, MaxPooling1D, Dense, Flatten, Dropout
 
 from gensim.models import Word2Vec
 
@@ -201,4 +201,48 @@ class CNN():
         self.accuracy = accuracy_score(self.y_test, self.y_pred)
         self.classification_report = classification_report(self.y_test, self.y_pred)
 
+        print(f"Accuracy: {self.accuracy}")
+        print(f"Classification report:\n{self.classification_report}")
+
         return self.accuracy, self.classification_report
+    
+    def crossValidation(self, num_folds: int=5)->(float, float):
+        ''' Performs k-fold cross validation on the model.
+
+        Input:
+            - num_folds: number of folds.
+        
+        Output:
+            - mean_accuracy: mean accuracy across all folds.
+            - std_accuracy: standard deviation of the accuracies.
+        '''
+        kfold = KFold(n_splits=num_folds, shuffle=True, random_state=42)
+
+        scores_list = []
+        fold_no = 1
+        for train, test in kfold.split(self.X_padded, self.df['generated']):
+            # Build the model
+            model = self.buildModel()
+            
+            # Select data for this fold
+            X_train_fold, X_test_fold = self.X_padded[train], self.X_padded[test]
+            y_train_fold, y_test_fold = self.df['generated'].iloc[train], self.df['generated'].iloc[test]
+
+            print(f"Training for fold {fold_no}...")
+
+            # Train the model
+            model.fit(X_train_fold, y_train_fold, epochs=10, validation_data=(X_test_fold, y_test_fold), batch_size=64)
+
+            # Evaluate the model
+            scores = model.evaluate(X_test_fold, y_test_fold, verbose=0)
+            scores_list.append(scores[1])
+            print(f'Score for fold {fold_no}: {model.metrics_names[0]} of {scores[0]}; {model.metrics_names[1]} of {scores[1]*100}%')
+
+            fold_no += 1
+        
+        mean_accuracy = np.mean(scores_list)
+        std_accuracy = np.std(scores_list)
+        print(f"Mean accuracy: {mean_accuracy}")
+        print(f"Standard deviation: {std_accuracy}")
+
+        return mean_accuracy, std_accuracy
