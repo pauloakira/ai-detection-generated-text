@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+import utils
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import hstack, csr_matrix
 from sklearn.model_selection import train_test_split
@@ -8,8 +10,8 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import cross_val_score
 
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
+from keras.models import Sequential
+from keras.layers import Embedding, Conv1D, MaxPooling1D, GlobalMaxPooling1D, Dense, Flatten, Dropout
 
 from gensim.models import Word2Vec
 
@@ -118,6 +120,9 @@ class CNN():
         self.df = df
         self.word2vec_model = word2vec_model
 
+        self.tokenizer, self.X_padded = utils.tokenizeText(self.df)
+        self.embedding_matrix = utils.createEmbeddingMatrix(self.tokenizer, word2vec_model)
+
         self.X_train = None
         self.X_test = None
         self.y_train = None
@@ -127,6 +132,31 @@ class CNN():
 
         self.accuracy = None
         self.classification_report = None
+
+    def buildModel(self):
+
+        # Emebedding layer parameters
+        vocab_size = len(self.tokenizer.word_index) + 1
+        embedding_dim = self.word2vec_model.vector_size
+        max_length = self.X_padded.shape[1]
+
+        # Model definition       
+        model = Sequential()
+        # Add the embedding layer
+        model.add(Embedding(vocab_size, embedding_dim, weights=[self.embedding_matrix], input_length=max_length, trainable=False))
+        # Add the convolutional layer
+        model.add(Conv1D(filters=128, kernel_size=5, activation='relu'))
+        # Add the pooling layer
+        model.add(MaxPooling1D(pool_size=2))
+        # Fully connected layer
+        model.add(Flatten())
+        model.add(Dense(10, activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(1, activation='sigmoid')) # binary classifier
+
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+        return model
 
     def train(self):
         pass
