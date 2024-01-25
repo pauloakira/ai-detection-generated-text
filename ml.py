@@ -133,8 +133,15 @@ class CNN():
         self.accuracy = None
         self.classification_report = None
 
-    def buildModel(self):
+    def buildModel(self)->Sequential:
+        ''' Builds the CNN model.
 
+        Input:
+            None
+        
+        Output:
+            - model: CNN model.
+        '''
         # Emebedding layer parameters
         vocab_size = len(self.tokenizer.word_index) + 1
         embedding_dim = self.word2vec_model.vector_size
@@ -158,5 +165,40 @@ class CNN():
 
         return model
 
-    def train(self):
-        pass
+    def train(self)->Sequential:
+        ''' Trains the CNN model. The dataset is split into train and test sets. It is important for the DataFrame to have a column named 'generated' with the labels.
+
+        Input:
+            None
+        
+        Output:
+            - model: trained model.
+        '''
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X_padded, self.df['generated'], test_size=0.2, random_state=42)
+
+        # Build the model
+        model = self.buildModel()
+
+        # Train the model
+        model.fit(self.X_train, self.y_train, epochs=10, validation_data=(self.X_test, self.y_test), batch_size=64)
+
+        return model
+
+    def evaluateModel(self, model: Sequential)->(float, str):
+        ''' Evaluates the model.
+
+        Input:
+            - model: trained model.
+        
+        Output:
+            - accuracy: accuracy of the model.
+            - classification_report: classification report of the model.
+        '''
+        y_pred_prob = model.predict(self.X_test)
+        # Convert the probabilities to binary labels
+        self.y_pred = (y_pred_prob > 0.5).astype('int32')
+
+        self.accuracy = accuracy_score(self.y_test, self.y_pred)
+        self.classification_report = classification_report(self.y_test, self.y_pred)
+
+        return self.accuracy, self.classification_report
