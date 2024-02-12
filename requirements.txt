@@ -7,3 +7,5 @@ seaborn
 nltk
 textblob==0.17.1
 gensim
+pandas
+pyarrow
