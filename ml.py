@@ -11,7 +11,7 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import cross_val_score, KFold
 
 from keras.models import Sequential
-from keras.layers import Embedding, Conv1D, MaxPooling1D, Dense, Flatten, Dropout, LSTM
+from keras.layers import Embedding, Conv1D, MaxPooling1D, Dense, Flatten, Dropout, LSTM, Bidirectional
 
 from gensim.models import Word2Vec
 
@@ -252,7 +252,8 @@ class CNN(TextClassifier):
 
     
     
-class LSTM(TextClassifier):
+class LSTMClassifier(TextClassifier):
+
     def buildModel(self)->Sequential:
         ''' Builds the CNN model.
 
@@ -266,13 +267,16 @@ class LSTM(TextClassifier):
         vocab_size = len(self.tokenizer.word_index) + 1
         embedding_dim = self.word2vec_model.vector_size
         max_length = self.X_padded.shape[1]
+        print(f"Max Length: {max_length}")
 
         # Model definition
         model = Sequential()
         # Add the embedding layer
         model.add(Embedding(vocab_size, embedding_dim, weights=[self.embedding_matrix], input_length=max_length, trainable=False))
         # Add the LSTM layer
-        model.add(LSTM(64))
+        # model.add(LSTM(128))
+        model.add(Bidirectional(LSTM(128, return_sequences=True)))
+        model.add(Bidirectional(LSTM(64)))
         # Fully connected layer
         model.add(Dense(10, activation='relu'))
         model.add(Dropout(0.5))
