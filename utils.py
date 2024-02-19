@@ -1,4 +1,5 @@
 import re
+import sys
 import pandas as pd
 import numpy as np
 
@@ -10,12 +11,30 @@ from nltk.stem import WordNetLemmatizer, PorterStemmer
 from textblob import TextBlob
 from gensim.models import Word2Vec
 
+import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
+import scipy
 from scipy.sparse import hstack, csr_matrix
 from scipy.stats import kstest, norm
 
+import tensorflow as tf
+import platform
+
+import keras
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
+
+def checkSetup():
+    print(f"Python Platform: {platform.platform()}")
+    print(f"Tensor Flow Version: {tf.__version__}")
+    print(f"Keras Version: {keras.__version__}")
+    print()
+    print(f"Python {sys.version}")
+    print(f"Pandas {pd.__version__}")
+    print(f"Scikit-Learn {sklearn.__version__}")
+    print(f"SciPy {scipy.__version__}")
+    gpu = len(tf.config.list_physical_devices('GPU'))>0
+    print("GPU is", "available" if gpu else "NOT AVAILABLE")
 
 def donwload_nltk_resources(resource_name: str):
     try:
